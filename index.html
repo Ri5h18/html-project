@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nachbar Translator</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- BoxIcons Link -->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
     <style>
         /* General Page Styling */
+        html,
         body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             color: black;
-            margin: 0;
-            padding: 0;
             transition: 0.3s ease;
         }
 
@@ -24,15 +33,13 @@
 
         /* Navbar Styling */
         .navbar {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: white;
             padding: 15px 20px;
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
             transition: 0.3s ease;
         }
 
@@ -82,20 +89,30 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-grow: 1;
             gap: 20px;
-            margin-top: 30px;
+            height: 100%;
+            padding: 0px;
+            /* overflow: hidden; */
         }
-
+        .outer{
+            flex-grow: 1;
+            /* background-color: #444; */
+            height: 100%;
+            gap: 20px;
+            padding: 30px;
+            overflow: hidden;
+        }
         /* Translator Box */
         .translator-box {
             display: flex;
             flex-direction: column;
-            background: white;
+            background: rgb(250, 250, 250);
+            height: 100%;
             padding: 20px;
             border-radius: 10px;
             width: 45%;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
             transition: 0.3s ease;
         }
 
@@ -127,6 +144,7 @@
             height: 200px;
             padding: 15px;
             font-size: 16px;
+            height: 100%;
             border: 1px solid #ddd;
             border-radius: 5px;
             resize: none;
@@ -166,17 +184,54 @@
 
         /* Speech & Copy Buttons */
         .icon-button {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
             background: transparent;
             border: none;
             font-size: 18px;
             cursor: pointer;
         }
 
+        /* Recording Indicator */
+        #recordingIndicator {
+            color: red;
+            font-size: 14px;
+        }
+
+        .icon-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            padding-block: 10px;
+            width: 100%;
+        }
+
+        /* Translate Button */
+        .translate-button {
+            background-color: black;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+            
+        }
+        .translate-button:active {
+            background-color: #333;
+        }
+        .translate-button.dark-mode-toggle {
+            background-color: #444;
+            color: white;
+        }
+
+        .translate-button:hover {
+            background-color: black;
+            color:white
+        }
     </style>
 </head>
+
 <body>
 
     <header class="navbar">
@@ -184,10 +239,12 @@
         <nav>
             <a href="#">Option 1</a>
             <a href="#">Option 2</a>
-            <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
+            <button class="dark-mode-toggle" id="darkModeToggle">
+                <i class="bx bx-moon"></i>
+            </button>
         </nav>
     </header>
-
+   <div class="outer">
     <div class="translator-container">
         <div class="translator-box">
             <select id="sourceLang">
@@ -196,12 +253,25 @@
                 <option value="fr">French</option>
                 <option value="es">Spanish</option>
                 <option value="ja">Japanese</option>
+                <option value="hi">Hindi</option>
+                <option value="mr">Marathi</option>
+                <option value="pa">Punjabi</option>
             </select>
             <textarea id="inputText" placeholder="Enter text to translate..."></textarea>
-            <button class="icon-button" id="micButton">🎤</button>
+            <div class="icon-container">
+                <div class="speech-buttons">
+                    <button class="icon-button" id="micButton">
+                        <i class="bx bx-microphone"></i>
+                    </button>
+                    <span id="recordingIndicator" style="display: none;">🎙️ Recording..., press to stop</span>
+                </div>
+                <button class="translate-button" id="translateButton">Translate</button>
+            </div>
         </div>
 
-        <button id="swapButton">⇄</button>
+        <button id="swapButton">
+            <i class="bx bx-transfer"></i>
+        </button>
 
         <div class="translator-box">
             <select id="targetLang">
@@ -210,15 +280,27 @@
                 <option value="fr">French</option>
                 <option value="es">Spanish</option>
                 <option value="ja">Japanese</option>
+                <option value="hi">Hindi</option>
+                <option value="mr">Marathi</option>
+                <option value="pa">Punjabi</option>
             </select>
             <textarea id="outputText" placeholder="Translation will appear here..." readonly></textarea>
-            <button class="icon-button" id="copyButton">📋</button>
+            <div class="icon-container">
+                <button class="icon-button" id="copyButton">
+                    <i class="bx bx-copy"></i>
+                </button>
+            </div>
         </div>
     </div>
+   </div>
+  
 
     <script>
+        // Translation API URL
+        const API_URL = "https://libretranslate.com/translate"; // Public LibreTranslate API
+
         // Swap Button Functionality
-        document.getElementById("swapButton").addEventListener("click", function() {
+        document.getElementById("swapButton").addEventListener("click", function () {
             let sourceLang = document.getElementById("sourceLang");
             let targetLang = document.getElementById("targetLang");
             let inputText = document.getElementById("inputText");
@@ -236,7 +318,7 @@
         });
 
         // Copy Button Functionality
-        document.getElementById("copyButton").addEventListener("click", function() {
+        document.getElementById("copyButton").addEventListener("click", function () {
             let outputText = document.getElementById("outputText");
             navigator.clipboard.writeText(outputText.value);
             alert("Copied to clipboard!");
@@ -251,7 +333,7 @@
             body.classList.add("dark-mode");
         }
 
-        darkModeToggle.addEventListener("click", function() {
+        darkModeToggle.addEventListener("click", function () {
             body.classList.toggle("dark-mode");
 
             // Save preference
@@ -261,7 +343,93 @@
                 localStorage.setItem("darkMode", "disabled");
             }
         });
+
+        // Translation Function
+        let btn=document.getElementById("translateButton")
+        async function translateText() {
+            const sourceLang = document.getElementById("sourceLang").value;
+            const targetLang = document.getElementById("targetLang").value;
+            const text = document.getElementById("inputText").value;
+            btn.innerHTML="translating..."
+                btn.disabled=true
+            if (text.trim() === "") {
+                alert("Please enter some text to translate.");
+                return;
+            }
+
+            try {
+                const response = await fetch('https://google-api31.p.rapidapi.com/gtranslate', {
+                    method: "POST",
+                    headers: {
+    'x-rapidapi-key': 'd3e92ae6d0msh46e3c2c20d23d24p15d981jsn32156835c781',
+    'x-rapidapi-host': 'google-api31.p.rapidapi.com',
+    'Content-Type': 'application/json'
+  },
+                    body: JSON.stringify({
+                        text: text,
+                        from_lang: sourceLang,
+                        to: targetLang,
+                        
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById("outputText").value = data.translated_text || "Translation failed!";
+                btn.innerHTML="Translate"
+                btn.disabled=false
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Translation error. Please try again.");
+            }
+        }
+
+        // Translate Button Click
+        btn.addEventListener("click", translateText);
+
+        // Audio Recording and Speech Recognition
+        let isRecording = false;
+        const micButton = document.getElementById("micButton");
+        const recordingIndicator = document.getElementById("recordingIndicator");
+        const inputText = document.getElementById("inputText");
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.interimResults = false;
+
+        // Handle Mic Button Click
+        micButton.addEventListener("click", function () {
+            if (!isRecording) {
+                recognition.lang = document.getElementById("sourceLang").value;
+                recognition.start();
+                isRecording = true;
+                recordingIndicator.style.display = "block";
+            } else {
+                recognition.stop();
+                isRecording = false;
+                recordingIndicator.style.display = "none";
+            }
+        });
+
+        // On Speech Result
+        recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            inputText.value += transcript;
+        };
+
+        // On Speech End
+        recognition.onend = function () {
+            isRecording = false;
+            recordingIndicator.style.display = "none";
+        };
+
+        // Handle errors
+        recognition.onerror = function (event) {
+            console.error("Speech recognition error: ", event.error);
+            alert("Could not recognize speech. Please try again.");
+        };
     </script>
 
 </body>
+
 </html>
